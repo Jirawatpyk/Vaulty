@@ -83,10 +83,10 @@ describe("performance & load", () => {
     const largeMs = ms(tLarge);
     assert.equal(openedLarge.data.assets.length, 250);
 
-    // Unlock is PBKDF2-bound (~50-400ms). Reseal (save) should stay snappy.
-    assert.ok(sealMs < 1500, `seal 80 too slow: ${sealMs.toFixed(0)}ms`);
-    assert.ok(openMs < 1500, `open 80 too slow: ${openMs.toFixed(0)}ms`);
+    // Unlock is PBKDF2-bound (~300-2500ms at 600k). Reseal (save) should stay snappy.
+    assert.ok(sealMs < 4000, `seal 80 too slow: ${sealMs.toFixed(0)}ms`);
+    assert.ok(openMs < 4000, `open 80 too slow: ${openMs.toFixed(0)}ms`);
     assert.ok(resealMs < 60, `reseal too slow: ${resealMs.toFixed(1)}ms`);
-    assert.ok(largeMs < 2500, `seal+open 250 too slow: ${largeMs.toFixed(0)}ms`);
+    assert.ok(largeMs < 8000, `seal+open 250 too slow: ${largeMs.toFixed(0)}ms`);
   });
 });

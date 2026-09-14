@@ -48,7 +48,8 @@ describe("encrypted blob guard", () => {
     assert.equal(isEncryptedBlob(null), false);
     assert.equal(isEncryptedBlob({ v: 1 }), false);
     assert.equal(isEncryptedBlob({ v: 1, salt: "", iv: "a", data: "b" }), false);
-    assert.equal(isEncryptedBlob({ v: 2, salt: "a", iv: "b", data: "c" }), false);
+    assert.equal(isEncryptedBlob({ v: 2, salt: "a", iv: "b", data: "c" }), true);
+    assert.equal(isEncryptedBlob({ v: 99, salt: "a", iv: "b", data: "c" }), false);
     assert.equal(isEncryptedBlob({ v: 1, salt: "a", iv: "b", data: "c" }), true);
   });
 });

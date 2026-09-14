@@ -31,7 +31,7 @@ describe("product handoff", () => {
     const html = executorPortalHtml(blob, vault.profile.fullName, "th");
     assert.equal(portalContainsPlainSecret(html, secret), false);
     assert.match(html, /PBKDF2/);
-    assert.match(html, /100000/);
+    assert.match(html, /600000/);
     const redacted = redactVault(vault);
     assert.equal(redacted.assets.every((a) => !a.secret), true);
     assert.ok(vault.assets.some((a) => a.secret));

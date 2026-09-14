@@ -14,6 +14,7 @@ import { NudgePanel } from "@/components/vault/nudge-panel";
 import { DeadmanPanel } from "@/components/vault/deadman-panel";
 import { WillCustodyPanel } from "@/components/vault/will-custody-panel";
 import { RightsPanel } from "@/components/vault/rights-panel";
+import { BillingPanel } from "@/components/vault/billing-panel";
 import { clamp } from "@/lib/vault/coerce";
 import { isValidUnlockSecret } from "@/lib/vault/secret";
 import { useT, useVaultStore } from "@/lib/vault/store";
@@ -230,6 +231,7 @@ function AccessPage() {
 
       {tab === "security" ? (
         <div id="access-panel-security" role="tabpanel" aria-labelledby="access-tab-security" className="flex flex-col gap-6 pb-10">
+          <BillingPanel />
           <RightsPanel />
           <Panel className="grid gap-4 sm:grid-cols-2">
             <h2 className="font-display text-xl sm:col-span-2">{t("profile")}</h2>

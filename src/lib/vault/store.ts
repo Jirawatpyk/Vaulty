@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { isEncryptedBlob, openVault, resealVault, sealVaultWithKey, type EncryptedBlob } from "./crypto";
+import { isEncryptedBlob, openVault, resealVault, sealVaultWithKey, BLOB_VERSION, type BlobVersion, type EncryptedBlob } from "./crypto";
 import { DEMO_PIN, type Lang, type VaultData, type VaultStatus } from "./types";
 import { coerceVault } from "./coerce";
 import { uid } from "./format";
@@ -19,6 +19,7 @@ const AUTOLOCK_KEY = "vaulty.autolock";
 
 let sessionKey: CryptoKey | null = null;
 let sessionSalt: string | null = null;
+let sessionVersion: BlobVersion = BLOB_VERSION;
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 let persistGen = 0;
 let unlockSeq = 0;
@@ -83,7 +84,7 @@ type State = {
 async function persist(vault: VaultData, gen: number): Promise<boolean> {
   if (!shouldCommitPersist(gen, persistGen, Boolean(sessionKey && sessionSalt))) return false;
   try {
-    const blob = await resealVault(vault, sessionKey!, sessionSalt!);
+    const blob = await resealVault(vault, sessionKey!, sessionSalt!, sessionVersion);
     if (!shouldCommitPersist(gen, persistGen, Boolean(sessionKey))) return false;
     writeBlob(blob);
     if (useVaultStore.getState().error === "persist") {
@@ -127,6 +128,7 @@ function dropSession() {
   }
   sessionKey = null;
   sessionSalt = null;
+  sessionVersion = BLOB_VERSION;
 }
 
 function withActivity(vault: VaultData, text?: string): VaultData {
@@ -204,8 +206,23 @@ export const useVaultStore = create<State>((set, get) => ({
         set({ busy: false, error: "corrupt" });
         return false;
       }
-      sessionKey = key;
-      sessionSalt = blob.salt;
+      let activeKey = key;
+      let activeSalt = blob.salt;
+      let activeVersion: BlobVersion = blob.v;
+      if (blob.v < BLOB_VERSION) {
+        try {
+          const upgraded = await sealVaultWithKey(vault, pin);
+          writeBlob(upgraded.blob);
+          activeKey = upgraded.key;
+          activeSalt = upgraded.blob.salt;
+          activeVersion = upgraded.blob.v;
+        } catch {
+          /* keep the v1 session if the upgrade write fails */
+        }
+      }
+      sessionKey = activeKey;
+      sessionSalt = activeSalt;
+      sessionVersion = activeVersion;
       resetLockout();
       pushSec("unlock");
       const lang = get().lang;
@@ -241,9 +258,10 @@ export const useVaultStore = create<State>((set, get) => ({
     const vault = get().vault;
     const key = sessionKey;
     const salt = sessionSalt;
+    const version = sessionVersion;
     dropSession();
     if (vault && key && salt) {
-      void resealVault(vault, key, salt).then(writeBlob).catch(() => undefined);
+      void resealVault(vault, key, salt, version).then(writeBlob).catch(() => undefined);
     }
     pushSec(kind);
     set({
@@ -267,6 +285,7 @@ export const useVaultStore = create<State>((set, get) => ({
       lsSet(DEMO_KEY, "0");
       sessionKey = key;
       sessionSalt = blob.salt;
+      sessionVersion = blob.v;
       resetLockout();
       pushSec("unlock");
       set({
@@ -298,6 +317,7 @@ export const useVaultStore = create<State>((set, get) => ({
       if (seq !== unlockSeq) return;
       sessionKey = key;
       sessionSalt = blob.salt;
+      sessionVersion = blob.v;
       resetLockout();
       pushSec("unlock");
       writeBlob(blob);
@@ -360,6 +380,7 @@ export const useVaultStore = create<State>((set, get) => ({
     writeBlob(blob);
     sessionKey = key;
     sessionSalt = blob.salt;
+    sessionVersion = blob.v;
     pushSec("pin");
     markBackupNeeded();
     set({ backupDue: true });
@@ -384,7 +405,7 @@ export const useVaultStore = create<State>((set, get) => ({
         const vault = get().vault;
         if (vault && sessionKey && sessionSalt) {
           try {
-            return JSON.stringify(await resealVault(vault, sessionKey, sessionSalt));
+            return JSON.stringify(await resealVault(vault, sessionKey, sessionSalt, sessionVersion));
           } catch {
             return null;
           }

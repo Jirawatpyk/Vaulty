@@ -1,21 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { EMAIL_RE } from "./validate.ts";
-import { isHttpsUrl, sanitizeInterval, type ArmInput, type SwitchLang } from "./deadman.ts";
+import { isSafeWebhookUrl, sanitizeInterval, sanitizeNoticeLabel, type ArmInput, type SwitchLang } from "./deadman.ts";
 
 function parseArm(input: unknown): ArmInput {
   const o = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
   const email = String(o.email ?? "").trim().toLowerCase();
   if (!email || email.length > 120 || !EMAIL_RE.test(email)) throw new Error("invalid email");
-  const webhookUrl = String(o.webhookUrl ?? "").trim();
-  if (webhookUrl && !isHttpsUrl(webhookUrl)) throw new Error("webhook must be https");
+  const webhookUrl = String(o.webhookUrl ?? "").trim().slice(0, 300);
+  if (webhookUrl && !isSafeWebhookUrl(webhookUrl)) throw new Error("webhook host not allowed");
   const lang: SwitchLang = o.lang === "en" ? "en" : "th";
   return {
     email,
     lineToken: String(o.lineToken ?? "").trim().slice(0, 256) || undefined,
     lineTo: String(o.lineTo ?? "").trim().slice(0, 64) || undefined,
     webhookUrl: webhookUrl || undefined,
-    ownerLabel: String(o.ownerLabel ?? "").trim().slice(0, 80),
+    ownerLabel: sanitizeNoticeLabel(String(o.ownerLabel ?? "")),
     lang,
     intervalDays: sanitizeInterval(o.intervalDays),
   };
@@ -36,8 +36,10 @@ export const armDeadman = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { readConsent } = await import("./consent.server");
     const { isConsentLive } = await import("./legal.ts");
+    const { requireFeature } = await import("./billing.server");
     const { armSwitch } = await import("./deadman.server");
     if (!isConsentLive(await readConsent(context.userId), "notify")) throw new Error("consent");
+    await requireFeature(context.userId, data.lineToken ? "deadman_line" : "deadman_arm");
     return armSwitch(context.userId, data);
   });
 

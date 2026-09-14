@@ -56,6 +56,7 @@ try {
     await signIn.first().click();
     await page.waitForURL(/\/login/, { timeout: 10000 });
     const mail = `cloud.${Date.now()}@vaulty.test`;
+    await page.locator("#consent-account").check();
     await page.getByRole("textbox", { name: /เมล|Email/ }).fill(mail);
     await page.locator('input[type=password]').fill("Vaulty-cloud-1");
     await page.getByRole("button", { name: /สมัครบัญชี|Create account/ }).click();

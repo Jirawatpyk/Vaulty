@@ -56,6 +56,7 @@ describe("legal documents", () => {
       const blob = `${terms.title} ${terms.sections.map((s) => s.paragraphs.join(" ")).join(" ")}`;
       assert.match(blob, /ไม่ใช่พินัยกรรม|not a will/i);
       assert.match(blob, /20/);
+      assert.match(blob, /โหมดทดสอบ|test mode/i);
       const p = privacy.sections.map((s) => s.paragraphs.join(" ")).join(" ");
       assert.match(p, /สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล|Personal Data Protection Commission/i);
       assert.match(p, /Resend|เมล/);

@@ -136,7 +136,7 @@ const TERMS_TH: LegalSection[] = [
     heading: "6. สำรองคลาวด์และสวิตช์คนตาย",
     paragraphs: [
       "สำรองคลาวด์เก็บเฉพาะไฟล์เข้ารหัส ไม่เก็บรหัส การกู้บนเครื่องใหม่ยังต้องใช้รหัสเดิม",
-      "สวิตช์คนตายส่งข้อความที่ท่านกำหนดไปยังเมล ไลน์ หรือเว็บฮุกที่ท่านใส่ไว้ ข้อความไม่มีรหัสคลัง การส่งขึ้นกับผู้ให้บริการภายนอก และไม่รับประกันว่าถึงหรือถูกอ่าน",
+      "สวิตช์คนตายส่งข้อความที่ท่านกำหนดไปยังเมล ไลน์ หรือเว็บฮุกที่ท่านใส่ไว้ ข้อความไม่มีรหัสคลัง เมลส่งผ่านผู้ให้บริการจดหมายธุรกรรมเท่านั้น ไม่ใช้ฟอร์มสาธารณะ เว็บฮุกต้องเป็น HTTPS สาธารณะ — ระบบปฏิเสธที่อยู่ภายในเครื่องและเครือข่ายส่วนตัว การส่งขึ้นกับผู้ให้บริการภายนอก และไม่รับประกันว่าถึงหรือถูกอ่าน",
     ],
   },
   {
@@ -173,6 +173,13 @@ const TERMS_TH: LegalSection[] = [
     heading: "12. การแก้ไข",
     paragraphs: [
       "เมื่อข้อกำหนดหรือนโยบายเปลี่ยน รุ่นเอกสารจะถูกเปลี่ยน ท่านต้องให้ความยินยอมรุ่นใหม่ก่อนใช้บริการบนเซิร์ฟเวอร์ต่อ การใช้คลังเฉพาะเครื่องไม่ถูกบังคับให้ยอมรับรุ่นใหม่",
+    ],
+  },
+  {
+    heading: "13. แพ็กเกจและเอกสารบัญชี",
+    paragraphs: [
+      "คลังบนเครื่องใช้ได้โดยไม่เสียเงิน แพ็กเกจครอบครัว มรดก และสำนักงานเป็นบริการเสริมสำหรับสำรองคลาวด์และสวิตช์คนตาย",
+      "รอบนี้เป็นโหมดทดสอบ ผู้ให้บริการยังไม่จดนิติบุคคล และยังไม่เก็บเงินจริง เอกสารที่ออกเป็นเอกสารทดสอบ ไม่ใช่ใบเสร็จหรือใบกำกับภาษีตามประมวลรัษฎากร จนกว่าจะจดบริษัทและเปิดเก็บเงินจริง",
     ],
   },
 ];
@@ -216,7 +223,7 @@ const TERMS_EN: LegalSection[] = [
     heading: "6. Cloud backup and the dead-man’s switch",
     paragraphs: [
       "Cloud backup stores ciphertext only, never the code. A new phone still needs the same code.",
-      "The dead-man’s switch sends your notice to the email, LINE, or webhook you enter. It never includes the vault code. Delivery depends on third parties and is not guaranteed to arrive or be read.",
+      "The dead-man’s switch sends your notice to the email, LINE, or webhook you enter. It never includes the vault code. Email is sent only through a transactional mail provider. Webhooks must be public HTTPS URLs; localhost and private addresses are rejected. Delivery depends on third parties and is not guaranteed to arrive or be read.",
     ],
   },
   {
@@ -255,6 +262,13 @@ const TERMS_EN: LegalSection[] = [
       "When terms or the privacy notice change, the document version changes. You must consent to the new version before using server features again. A device-only vault is not forced to accept the new version.",
     ],
   },
+  {
+    heading: "13. Plans and billing documents",
+    paragraphs: [
+      "The vault on this device stays free. Care, Estate and Counsel plans are optional add-ons for cloud backup and the dead-man switch.",
+      "This round is test mode. The operator is not yet incorporated and does not collect real payments. Issued documents are test copies, not legal receipts or tax invoices, until a company is registered and live billing starts.",
+    ],
+  },
 ];
 
 const PRIVACY_TH: LegalSection[] = [
@@ -279,6 +293,7 @@ const PRIVACY_TH: LegalSection[] = [
       "สำรองคลาวด์: ไฟล์คลังแบบเข้ารหัส ลายนิ้วมือของไฟล์ ขนาด ป้ายชื่อเจ้าของ เวลาสำรอง — ไม่มีรหัสคลัง และไม่มีรายการทรัพย์สินเป็นข้อความล้วน",
       "สวิตช์คนตาย: อีเมลผู้รับ โทเคนไลน์ รหัสผู้ใช้ไลน์ เว็บฮุก ช่วงเช็คอิน เวลาเช็คอินล่าสุด และบันทึกการส่งข้อความแจ้ง (ไม่มีรหัสคลัง)",
       "ความยินยอม: รุ่นเอกสาร วัตถุประสงค์ที่ยินยอม วันเวลาที่ให้หรือถอน",
+      "แพ็กเกจทดสอบ: รหัสแพ็กเกจ สถานะ วันทดลอง วันหมดอายุ ชื่อที่อยู่เลขผู้เสียภาษีที่ท่านกรอกเพื่อออกเอกสาร และไฟล์ใบเสร็จ/ใบกำกับทดสอบ — ไม่มีเลขบัตร ไม่มีรหัสคลัง",
     ],
   },
   {
@@ -370,6 +385,7 @@ const PRIVACY_EN: LegalSection[] = [
       "Cloud backup: the encrypted vault file, its fingerprint, size, owner label, and time — never the passcode and never plaintext assets.",
       "Dead-man’s switch: recipient email, LINE token, LINE user id, webhook, interval, last check-in, and send receipts (never the vault code).",
       "Consent: document version, purposes granted, and the time you granted or withdrew them.",
+      "Test billing: plan code, status, trial and expiry dates, the buyer name/address/tax ID you type for documents, and test receipt files — never a card number, never the vault code.",
     ],
   },
   {

@@ -62,7 +62,12 @@ export function CloudBackupPanel() {
       setMeta(next);
       toast(t("cloudSaved"));
     } catch (err) {
-      toast(String(err).includes("consent") ? t("consentNeed") : t("cloudFail"));
+      const msg = String(err);
+      if (msg.includes("consent")) toast(t("consentNeed"));
+      else if (msg.includes("plan")) {
+        toast(t("billNeedPlan"));
+        document.getElementById("access-tab-security")?.click();
+      } else toast(t("cloudFail"));
     } finally {
       setBusy(null);
     }

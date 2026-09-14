@@ -40,7 +40,7 @@ export function parseSealedPayload(raw: unknown): SealedParse {
     return { ok: false, error: "plaintext" };
   }
   if (!isEncryptedBlob(parsed)) return { ok: false, error: "not_sealed" };
-  const blob: EncryptedBlob = { v: 1, salt: parsed.salt, iv: parsed.iv, data: parsed.data };
+  const blob: EncryptedBlob = { v: parsed.v, salt: parsed.salt, iv: parsed.iv, data: parsed.data };
   return { ok: true, normalized: JSON.stringify(blob), blob };
 }
 

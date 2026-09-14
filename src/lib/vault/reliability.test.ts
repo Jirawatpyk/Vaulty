@@ -99,6 +99,6 @@ describe("persist recovery", () => {
     const bad = { ...blob, data: `${blob.data}aa` };
     assert.equal(isEncryptedBlob(bad), true);
     await assert.rejects(() => openVault(bad, "147258"));
-    assert.equal(canRestore(JSON.stringify({ v: 2, salt: "a", iv: "b", data: "c" })), false);
+    assert.equal(canRestore(JSON.stringify({ v: 99, salt: "a", iv: "b", data: "c" })), false);
   });
 });

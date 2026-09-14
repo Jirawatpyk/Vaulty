@@ -64,7 +64,16 @@ try {
     record("D5", "ยังไม่ล็อกอิน — มีทางเข้าสู่ระบบ", (await signIn.count()) > 0);
   }
 
-  const tick = await page.request.get(`${new URL(url).origin}/api/deadman/tick`);
+  const origin = new URL(url).origin;
+  const secret = process.env.CRON_SECRET || "vaulty-dev-cron";
+  const denied = await page.request.post(`${origin}/api/deadman/tick`);
+  record("D6a", "tick ต้องมี Authorization", denied.status() === 401);
+  const getTick = await page.request.get(`${origin}/api/deadman/tick`);
+  const getBody = await getTick.json().catch(() => ({}));
+  record("D6b", "GET tick ไม่ยิงสวิตช์", typeof getBody.scanned !== "number");
+  const tick = await page.request.post(`${origin}/api/deadman/tick`, {
+    headers: { Authorization: `Bearer ${secret}` },
+  });
   const body = await tick.json().catch(() => ({}));
   record("D6", "ตัวเดินเวลารับ tick", tick.ok() && typeof body.scanned === "number");
 } catch (err) {

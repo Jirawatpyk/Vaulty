@@ -12,7 +12,7 @@ describe("cloud backup payload", () => {
     const ok = parseSealedPayload(raw);
     assert.equal(ok.ok, true);
     if (ok.ok) {
-      assert.match(ok.normalized, /"v":1/);
+      assert.match(ok.normalized, /"v":2/);
       assert.doesNotMatch(ok.normalized, /258036/);
       assert.doesNotMatch(ok.normalized, /สุทธิดา/);
       const fp = await cloudFingerprint(ok.normalized);
@@ -39,7 +39,7 @@ describe("cloud backup payload", () => {
     assert.equal(parsed.ok, true);
     if (parsed.ok) {
       assert.equal("note" in JSON.parse(parsed.normalized), false);
-      assert.deepEqual(JSON.parse(parsed.normalized).v, 1);
+      assert.deepEqual(JSON.parse(parsed.normalized).v, 2);
     }
   });
 });

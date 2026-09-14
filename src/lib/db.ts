@@ -1,6 +1,6 @@
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
 
-/** Which database backend is active. Includes legal_consent (0004). */
+/** Which database backend is active. Includes billing (0005). */
 export type DbSource = "neon" | "pglite";
 
 // An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
@@ -137,7 +137,7 @@ async function createPgliteSql(): Promise<Sql> {
   // passes serialized on a global chain so concurrent callers never
   // double-apply.
   const migrate = async (): Promise<void> => {
-    // Includes 0003_cloud_backup.sql via eager glob.
+    // Includes 0005_billing.sql via eager glob.
     const migrations = import.meta.glob("/migrations/*.sql", {
       query: "?raw",
       import: "default",

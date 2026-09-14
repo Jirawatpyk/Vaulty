@@ -1,4 +1,5 @@
 import type { EncryptedBlob } from "./crypto.ts";
+import { iterationsFor } from "./crypto.ts";
 import { t } from "./i18n.ts";
 import type { Lang } from "./types.ts";
 
@@ -71,6 +72,7 @@ export function executorPortalHtml(blob: EncryptedBlob, ownerName: string, lang:
 <script>
 const BLOB = ${safeJson(blob)};
 const L = ${safeJson(labels)};
+const ITER = ${iterationsFor(blob.v)};
 const $ = (id) => document.getElementById(id);
 $("kicker").textContent = L.kicker;
 $("title").textContent = L.title;
@@ -94,7 +96,7 @@ async function openVault(pin) {
   const data = b64ToBytes(BLOB.data);
   const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveKey"]);
   const key = await crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: ITER, hash: "SHA-256" },
     material,
     { name: "AES-GCM", length: 256 },
     false,

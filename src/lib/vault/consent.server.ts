@@ -69,6 +69,8 @@ export async function eraseServerPersonalData(userId: string): Promise<ConsentRe
   await sql`delete from cloud_backup where user_id = ${userId}`;
   await sql`delete from deadman_outbox where user_id = ${userId}`;
   await sql`delete from deadman_switch where user_id = ${userId}`;
+  const { cancelBillingOnErase } = await import("./billing.server");
+  await cancelBillingOnErase(userId);
   const withdrawn: ConsentRecord = {
     version: LEGAL_VERSION,
     at: new Date().toISOString(),

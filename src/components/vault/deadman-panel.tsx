@@ -77,7 +77,12 @@ export function DeadmanPanel() {
       toast(t("deadmanArmed"));
       await refresh();
     } catch (err) {
-      toast(String(err).includes("consent") ? t("consentNeed") : String(err).slice(0, 180));
+      const msg = String(err);
+      if (msg.includes("consent")) toast(t("consentNeed"));
+      else if (msg.includes("plan")) {
+        toast(t("billNeedPlan"));
+        document.getElementById("access-tab-security")?.click();
+      } else toast(msg.slice(0, 180));
     } finally {
       setBusy(false);
     }

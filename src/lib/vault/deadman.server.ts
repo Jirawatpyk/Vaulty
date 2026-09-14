@@ -1,10 +1,15 @@
+import { lookup } from "node:dns/promises";
 import { getSql } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import {
-  isHttpsUrl,
+  assertSafeWebhookUrl,
+  isPrivateAddress,
+  isSafeWebhookUrl,
+  mapInBatches,
   maskEmail,
   nextDueAt,
   sanitizeInterval,
+  sanitizeNoticeLabel,
   shouldFire,
   switchMessage,
   switchSubject,
@@ -30,6 +35,8 @@ type DeadmanRow = {
 };
 
 type Delivery = { channel: string; dest: string; ok: boolean; detail: string };
+
+const FETCH_MS = 8_000;
 
 function asLang(value: string): SwitchLang {
   return value === "en" ? "en" : "th";
@@ -69,13 +76,13 @@ export async function armSwitch(userId: string, input: ArmInput): Promise<Deadma
   const lineToken = input.lineToken?.trim() || null;
   const lineTo = input.lineTo?.trim() || null;
   const webhookUrl = input.webhookUrl?.trim() || null;
-  if (webhookUrl && !isHttpsUrl(webhookUrl)) {
-    throw new Error("webhook must be https");
+  if (webhookUrl && !isSafeWebhookUrl(webhookUrl)) {
+    throw new Error("webhook host not allowed");
   }
   const intervalDays = sanitizeInterval(input.intervalDays);
   const now = Date.now();
   const dueAt = nextDueAt(now, intervalDays);
-  const ownerLabel = input.ownerLabel.trim().slice(0, 80);
+  const ownerLabel = sanitizeNoticeLabel(input.ownerLabel);
   const lang = input.lang === "en" ? "en" : "th";
   const sql = await getSql();
   await sql`
@@ -143,20 +150,16 @@ async function sendEmail(to: string, subject: string, text: string): Promise<Del
   const dest = maskEmail(to);
   const resend = env("RESEND_API_KEY");
   const from = env("MAIL_FROM") || "Vaulty <noreply@vaulty.app>";
+  if (!resend) {
+    return { channel: "email", dest, ok: false, detail: "email provider not configured" };
+  }
   try {
-    if (resend) {
-      const r = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${resend}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from, to, subject, text }),
-      });
-      const detail = await r.text();
-      return { channel: "email", dest, ok: r.ok, detail: detail.slice(0, 240) };
-    }
-    const r = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(to)}`, {
+    const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ _subject: subject, message: text, name: "Vaulty" }),
+      headers: { Authorization: `Bearer ${resend}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to, subject, text }),
+      redirect: "error",
+      signal: AbortSignal.timeout(FETCH_MS),
     });
     const detail = await r.text();
     return { channel: "email", dest, ok: r.ok, detail: detail.slice(0, 240) };
@@ -173,6 +176,8 @@ async function sendLine(token: string, to: string | null, text: string): Promise
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ to, messages: [{ type: "text", text }] }),
+        redirect: "error",
+        signal: AbortSignal.timeout(FETCH_MS),
       });
       const detail = await r.text();
       return { channel: "line", dest, ok: r.ok, detail: detail.slice(0, 240) };
@@ -182,6 +187,8 @@ async function sendLine(token: string, to: string | null, text: string): Promise
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/x-www-form-urlencoded" },
       body,
+      redirect: "error",
+      signal: AbortSignal.timeout(FETCH_MS),
     });
     const detail = await r.text();
     return { channel: "line", dest, ok: r.ok, detail: detail.slice(0, 240) };
@@ -192,13 +199,20 @@ async function sendLine(token: string, to: string | null, text: string): Promise
 
 async function sendWebhook(url: string, text: string, subject: string): Promise<Delivery> {
   try {
-    const r = await fetch(url, {
+    const parsed = assertSafeWebhookUrl(url);
+    const records = await lookup(parsed.hostname, { all: true });
+    if (!records.length || records.some((rec) => isPrivateAddress(rec.address))) {
+      return { channel: "webhook", dest: parsed.host, ok: false, detail: "webhook host not allowed" };
+    }
+    const r = await fetch(parsed.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source: "vaulty", subject, text }),
+      redirect: "error",
+      signal: AbortSignal.timeout(FETCH_MS),
     });
     const detail = await r.text();
-    return { channel: "webhook", dest: new URL(url).host, ok: r.ok, detail: detail.slice(0, 240) };
+    return { channel: "webhook", dest: parsed.host, ok: r.ok, detail: detail.slice(0, 240) };
   } catch (err) {
     return { channel: "webhook", dest: "webhook", ok: false, detail: String(err).slice(0, 240) };
   }
@@ -213,10 +227,15 @@ export async function fireOne(userId: string, opts: { force?: boolean } = {}): P
   const lang = asLang(row.lang);
   const text = switchMessage(row.owner_label, lang);
   const subject = switchSubject(row.owner_label, lang);
-  const deliveries: Delivery[] = [];
-  deliveries.push(await sendEmail(row.email, subject, text));
-  if (row.line_token) deliveries.push(await sendLine(row.line_token, row.line_to, text));
-  if (row.webhook_url) deliveries.push(await sendWebhook(row.webhook_url, text, subject));
+  const jobs: Promise<Delivery>[] = [sendEmail(row.email, subject, text)];
+  if (row.line_token) jobs.push(sendLine(row.line_token, row.line_to, text));
+  if (row.webhook_url) jobs.push(sendWebhook(row.webhook_url, text, subject));
+  const settled = await Promise.allSettled(jobs);
+  const deliveries: Delivery[] = settled.map((item) =>
+    item.status === "fulfilled"
+      ? item.value
+      : { channel: "unknown", dest: "", ok: false, detail: String(item.reason).slice(0, 240) },
+  );
   for (const item of deliveries) await recordOutbox(userId, item, text);
   const anyOk = deliveries.some((d) => d.ok);
   const status = anyOk ? "sent" : "failed";
@@ -234,10 +253,10 @@ export async function fireDueSwitches(): Promise<{ scanned: number; fired: numbe
   const rows = await sql<{ user_id: string }>`
     select user_id from deadman_switch where armed = true and due_at <= now()
   `;
+  const results = await mapInBatches(rows, (row) => fireOne(row.user_id));
   let fired = 0;
-  for (const row of rows) {
-    const result = await fireOne(row.user_id);
-    if (result.status === "sent" || result.status === "failed") fired += 1;
+  for (const r of results) {
+    if (r.status === "fulfilled" && (r.value.status === "sent" || r.value.status === "failed")) fired += 1;
   }
   return { scanned: rows.length, fired };
 }
