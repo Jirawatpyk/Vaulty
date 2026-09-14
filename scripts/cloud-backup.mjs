@@ -27,6 +27,8 @@ async function openAccess(page) {
     await page.getByRole("link", { name: /แผนส่งมอบ|^Access$|^Release plan$/i }).first().click();
   }
   await page.waitForTimeout(400);
+  const backupTab = page.getByRole("tab", { name: /สำรอง|Backup/ });
+  if (await backupTab.count()) await backupTab.click();
 }
 
 const browser = await chromium.launch({ headless: true });

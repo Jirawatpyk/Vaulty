@@ -111,7 +111,7 @@ export function DeadmanPanel() {
   }
 
   return (
-    <Panel className="mb-6" id="deadman">
+    <Panel id="deadman">
       <h2 className="font-display text-xl">{t("deadmanTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("deadmanLead")}</p>
       <p className="mt-2 text-sm text-muted-foreground">{t("deadmanLegal")}</p>

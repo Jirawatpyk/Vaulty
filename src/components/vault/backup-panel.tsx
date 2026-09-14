@@ -49,7 +49,7 @@ export function BackupPanel() {
   const last = lastExportAt();
 
   return (
-    <Panel className="mb-6" id="file-backup">
+    <Panel id="file-backup">
       <h2 className="font-display text-xl">{t("crossTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("crossLead")}</p>
       <ol className="mt-4 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">

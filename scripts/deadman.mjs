@@ -41,6 +41,7 @@ try {
   if (await confirm.isVisible().catch(() => false)) await confirm.click();
   await page.waitForURL(/\/vault/, { timeout: 20000 });
   await openAccess(page);
+  await page.getByRole("tab", { name: /^ส่งมอบ$|^Handoff$/ }).click();
 
   record("D1", "มีแผงสวิตช์คนตาย", (await page.getByRole("heading", { name: /สวิตช์คนตาย|Dead-man/ }).count()) > 0);
   record("D2", "บอกว่าส่งได้แม้เครื่องปิด", (await page.getByText(/แม้เครื่องปิด|even if this (phone|device) is off/i).count()) > 0);

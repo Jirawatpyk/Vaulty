@@ -81,6 +81,7 @@ try {
   await page.getByRole("button", { name: /เพิ่มเติม|^More$/i }).click();
   await page.getByRole("link", { name: /แผนส่งมอบ|Release plan/ }).last().click();
   await page.getByRole("heading", { name: /แผนส่งมอบ|Release plan/ }).first().waitFor({ timeout: 15000 });
+  await page.getByRole("tab", { name: /ความปลอดภัย|Security/ }).click();
   await page.locator("#legal-rights").waitFor({ timeout: 8000 });
   const rightsText = await page.locator("#legal-rights").innerText();
   record("L13", "แผนส่งมอบมีแผงสิทธิข้อมูลส่วนบุคคล", /สิทธิข้อมูลส่วนบุคคล|Personal data rights/i.test(rightsText), {

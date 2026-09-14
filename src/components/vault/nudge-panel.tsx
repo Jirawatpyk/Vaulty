@@ -61,7 +61,7 @@ export function NudgePanel() {
   }
 
   return (
-    <Panel className="mb-6" id="nudge">
+    <Panel id="nudge">
       <h2 className="font-display text-xl">{t("nudgeTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("nudgeLead")}</p>
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">

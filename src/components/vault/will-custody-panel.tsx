@@ -39,7 +39,7 @@ export function WillCustodyPanel() {
   }
 
   return (
-    <Panel className="mb-6" id="will-custody">
+    <Panel id="will-custody">
       <h2 className="font-display text-xl">{t("willCustodyTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("willCustodyLead")}</p>
       <p className="mt-3 text-sm text-muted-foreground">{t("willCustodyLegal")}</p>

@@ -120,10 +120,10 @@ export function HandoffPanel() {
             <Button variant="outline" className="h-auto min-h-11 whitespace-normal py-2" onClick={saveIcs}>
               {t("downloadCheckIn")}
             </Button>
+            <Button variant="ghost" className="h-auto min-h-11 whitespace-normal py-2 sm:col-span-2" onClick={saveAttestation}>
+              {t("downloadAttestation")}
+            </Button>
           </div>
-          <Button variant="ghost" className="mt-3 w-full" onClick={saveAttestation}>
-            {t("downloadAttestation")}
-          </Button>
         </section>
       </div>
       {briefOpen ? <LawyerBrief onClose={() => setBriefOpen(false)} /> : null}

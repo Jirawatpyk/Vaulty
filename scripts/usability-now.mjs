@@ -127,17 +127,24 @@ try {
   // --- Access: legal + cloud + deadman ---
   await openAccess(page);
   await page.waitForTimeout(400);
-  const accessText = await page.locator("#vault-main").innerText();
-  record("U14", "แผนส่งมอบบอกว่าไม่ใช่พินัยกรรม", /ไม่ใช่พินัยกรรม/.test(accessText));
-  record("U15", "แผนส่งมอบไม่สัญญาว่าไม่มีเซิร์ฟเวอร์ทั้งก้อน", !/ไม่ต้องมีเซิร์ฟเวอร์/.test(accessText), { snippet: accessText.slice(0, 200) });
-  record("U16", "มีข้ามไปส่วนคลาวด์/สวิตช์/ชุดครอบครัว", (await page.getByRole("navigation", { name: /ข้ามไปส่วน|Jump to/ }).count()) > 0);
-  record("U17", "แผงคลาวด์บอกว่ารหัสไม่ขึ้นเซิร์ฟเวอร์", /ไม่เก็บรหัสผ่าน|never the passcode/i.test(accessText));
-  record("U18", "แผงสวิตช์คนตายบอกว่าไม่ส่งรหัส", /ไม่ส่งรหัส|never includes the vault code/i.test(accessText));
+  const headText = await page.locator("#vault-main").innerText();
+  record("U14", "แผนส่งมอบบอกว่าไม่ใช่พินัยกรรม", /ไม่ใช่พินัยกรรม|not a will/i.test(headText));
+  record("U15", "แผนส่งมอบไม่สัญญาว่าไม่มีเซิร์ฟเวอร์ทั้งก้อน", !/ไม่ต้องมีเซิร์ฟเวอร์/.test(headText), { snippet: headText.slice(0, 200) });
+  record("U16", "แผนส่งมอบแยกแท็บ ส่งมอบ / สำรอง / ความปลอดภัย", (await page.getByRole("tablist").count()) > 0 && (await page.getByRole("tab").count()) >= 3);
 
+  await page.getByRole("tab", { name: /สำรอง|Backup/ }).click();
+  await page.waitForTimeout(200);
+  const backupText = await page.locator("#vault-main").innerText();
+  record("U17", "แผงคลาวด์บอกว่ารหัสไม่ขึ้นเซิร์ฟเวอร์", /ไม่เก็บรหัสผ่าน|never the passcode/i.test(backupText));
   const cloudTarget = page.getByRole("button", { name: /สำรองขึ้นคลาวด์|Back up to cloud/ }).or(page.getByRole("link", { name: /เข้าสู่ระบบ|Sign in/ }));
   record("U19", "กดสำรองคลาวด์หรือเข้าสู่ระบบได้จากแผนส่งมอบ", (await cloudTarget.count()) > 0);
   const cloudBox = await cloudTarget.first().boundingBox().catch(() => null);
   record("U20", "ปุ่มคลาวด์/เข้าสู่ระบบสูง ≥ 40px", Boolean(cloudBox && cloudBox.height >= 40), { cloudBox });
+
+  await page.getByRole("tab", { name: /^ส่งมอบ$|^Handoff$/ }).click();
+  await page.waitForTimeout(200);
+  const handoffText = await page.locator("#vault-main").innerText();
+  record("U18", "แผงสวิตช์คนตายบอกว่าไม่ส่งรหัส", /ไม่ส่งรหัส|never includes the vault code/i.test(handoffText));
 
   // Executor kit → other device
   const kitBtn = page.getByRole("button", { name: /ดาวน์โหลดชุดผู้จัดการมรดก|Download executor/i });

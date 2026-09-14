@@ -104,7 +104,7 @@ export function CloudBackupPanel() {
   }
 
   return (
-    <Panel className="mb-6" id="cloud-backup">
+    <Panel id="cloud-backup">
       <h2 className="font-display text-xl">{t("cloudTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("cloudLead")}</p>
       <p className="mt-3 text-sm text-muted-foreground">{t("cloudLegal")}</p>

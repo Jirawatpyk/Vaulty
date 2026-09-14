@@ -29,7 +29,7 @@ export function RightsPanel() {
   }
 
   return (
-    <Panel className="mb-6" id="legal-rights">
+    <Panel id="legal-rights">
       <h2 className="font-display text-xl">{t("rightsTitle")}</h2>
       <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("rightsLead")}</p>
       <p className="mt-3 text-sm">

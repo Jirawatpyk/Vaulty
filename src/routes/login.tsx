@@ -8,6 +8,7 @@ import { Field } from "@/components/vault/chrome";
 import { AccountConsentBox, LegalLinks } from "@/components/vault/consent-box";
 import { VaultMark } from "@/components/vault/vault-mark";
 import { useConsent } from "@/lib/vault/use-consent";
+import { writeAccessTab } from "@/lib/vault/access-tab";
 import { useT } from "@/lib/vault/store";
 
 export const Route = createFileRoute("/login")({ component: Login });
@@ -44,6 +45,7 @@ function Login() {
         return;
       }
       await grant({ terms: true, privacy: true, account: true });
+      writeAccessTab("backup");
       await navigate({ to: "/vault/access" });
     } catch (err) {
       setError(String(err).slice(0, 180));
@@ -83,9 +85,10 @@ function Login() {
                           setNeedConsent(true);
                           return;
                         }
-                        void grant({ terms: true, privacy: true, account: true }).then(() =>
-                          signIn(p.providerId, { callbackURL: "/vault/access" }),
-                        );
+                        void grant({ terms: true, privacy: true, account: true }).then(() => {
+                          writeAccessTab("backup");
+                          return signIn(p.providerId, { callbackURL: "/vault/access" });
+                        });
                       }}
                     >
                       Continue with {p.label}
