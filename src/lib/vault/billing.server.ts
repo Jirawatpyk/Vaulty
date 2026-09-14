@@ -10,11 +10,12 @@ import {
   YEAR_DAYS,
   addDaysIso,
   documentHtml,
+  docSeriesPrefix,
   effectiveFeatures,
   emptyProfile,
   emptySubscription,
+  formatDocNo,
   isPlanCode,
-  nextDocNo,
   parseProfile,
   profileReadyForTaxInvoice,
   resolveStatus,
@@ -206,6 +207,28 @@ export async function requireFeature(userId: string, feature: BillingFeature): P
   return snap;
 }
 
+function kindLetter(kind: DocKind): "R" | "T" | "C" {
+  return kind === "tax_invoice" ? "T" : kind === "credit_note" ? "C" : "R";
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  const e = err as { code?: string; message?: string };
+  return e?.code === "23505" || /unique|duplicate key/i.test(String(e?.message ?? err));
+}
+
+async function allocateDocNo(kind: DocKind, at = new Date()): Promise<string> {
+  const letter = kindLetter(kind);
+  const prefix = docSeriesPrefix(letter, at);
+  const sql = await getSql();
+  const rows = await sql<{ last_n: number }>`
+    insert into billing_doc_seq (prefix, last_n)
+    values (${prefix}, 1)
+    on conflict (prefix) do update set last_n = billing_doc_seq.last_n + 1
+    returning last_n
+  `;
+  return formatDocNo(letter, Number(rows[0]?.last_n ?? 1), at);
+}
+
 async function issueDocument(
   userId: string,
   kind: DocKind,
@@ -214,38 +237,41 @@ async function issueDocument(
   lang: "th" | "en",
 ): Promise<BillingDocMeta> {
   const amounts = splitVat(PLANS[plan].grossSatang);
-  const prefix = kind === "tax_invoice" ? "T" : kind === "credit_note" ? "C" : "R";
   const sql = await getSql();
-  const yymm = `${String(new Date().getFullYear()).slice(2)}${String(new Date().getMonth() + 1).padStart(2, "0")}`;
-  const like = `VT-${prefix}-${yymm}-%`;
-  const last = await sql<{ doc_no: string }>`
-    select doc_no from billing_document where doc_no like ${like} order by doc_no desc limit 1
-  `;
-  const docNo = nextDocNo(prefix, last[0]?.doc_no);
-  const createdAt = new Date().toISOString();
-  const html = documentHtml({ kind, docNo, plan, profile, createdAt, amounts, lang });
-  const id = randomUUID();
-  const payload = JSON.stringify({ html, test: true, seller: SELLER.nameTh });
-  await sql`
-    insert into billing_document (
-      id, user_id, doc_no, kind, plan_code, gross_satang, base_satang, vat_satang, status, payload, created_at
-    ) values (
-      ${id}, ${userId}, ${docNo}, ${kind}, ${plan}, ${amounts.gross}, ${amounts.base}, ${amounts.vat},
-      ${"test"}, ${payload}, ${createdAt}
-    )
-  `;
-  return {
-    id,
-    docNo,
-    kind,
-    planCode: plan,
-    grossSatang: amounts.gross,
-    baseSatang: amounts.base,
-    vatSatang: amounts.vat,
-    status: "test",
-    createdAt,
-    html,
-  };
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const createdAt = new Date().toISOString();
+    const docNo = await allocateDocNo(kind);
+    const html = documentHtml({ kind, docNo, plan, profile, createdAt, amounts, lang });
+    const id = randomUUID();
+    const payload = JSON.stringify({ html, test: true, seller: SELLER.nameTh });
+    try {
+      await sql`
+        insert into billing_document (
+          id, user_id, doc_no, kind, plan_code, gross_satang, base_satang, vat_satang, status, payload, created_at
+        ) values (
+          ${id}, ${userId}, ${docNo}, ${kind}, ${plan}, ${amounts.gross}, ${amounts.base}, ${amounts.vat},
+          ${"test"}, ${payload}, ${createdAt}
+        )
+      `;
+      return {
+        id,
+        docNo,
+        kind,
+        planCode: plan,
+        grossSatang: amounts.gross,
+        baseSatang: amounts.base,
+        vatSatang: amounts.vat,
+        status: "test",
+        createdAt,
+        html,
+      };
+    } catch (err) {
+      lastErr = err;
+      if (!isUniqueViolation(err)) throw err;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("doc_no");
 }
 
 export async function activateTestPlan(userId: string, plan: PlanCode, lang: "th" | "en"): Promise<BillingSnapshot> {

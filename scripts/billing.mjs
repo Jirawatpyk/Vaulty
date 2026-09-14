@@ -65,8 +65,9 @@ try {
   }
 
   record("B4", "เข้าสู่ระบบแล้วเห็นปุ่มเปิดใช้ทดสอบ", (await page.getByRole("button", { name: /เปิดใช้ทดสอบ|Activate test plan/ }).count()) >= 3);
+  await page.getByRole("button", { name: /เริ่มทดลอง 14 วัน|Start 14-day trial/ }).waitFor({ timeout: 12000 });
 
-  await page.getByPlaceholder(/บจก|Estate Co|ชื่อ-นามสกุล|full name/i).first().fill("บจก. ทดสอบ วอลตี้");
+  await page.getByRole("textbox", { name: /ชื่อผู้ซื้อ|Legal name/ }).fill("บจก. ทดสอบ วอลตี้");
   await page.getByPlaceholder("0105551234567").fill("1234567890123");
   await page.locator("#billing textarea").fill("123 ถ.ทดสอบ อ.บ้านค่าย จ.ระยอง");
   await page.getByRole("button", { name: /บันทึกข้อมูลผู้ซื้อ|Save buyer details/ }).click();

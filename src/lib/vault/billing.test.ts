@@ -4,7 +4,9 @@ import {
   PLANS,
   SELLER,
   activationNoop,
+  formatDocNo,
   documentHtml,
+  docSeriesPrefix,
   effectiveFeatures,
   effectivePlan,
   emptySubscription,
@@ -133,6 +135,15 @@ describe("documents", () => {
     assert.equal(nextDocNo("R", "VT-R-2609-00001", when), "VT-R-2609-00002");
     assert.equal(nextDocNo("R", "VT-R-2608-00099", when), "VT-R-2609-00001");
     assert.equal(nextDocNo("T", "not-a-number", when), "VT-T-2609-00001");
+  });
+
+  it("two readers of the same last number collide; sequence serials do not", () => {
+    const when = new Date(2026, 8, 14);
+    const last = "VT-R-2609-00007";
+    assert.equal(nextDocNo("R", last, when), nextDocNo("R", last, when));
+    assert.notEqual(formatDocNo("R", 8, when), formatDocNo("R", 9, when));
+    assert.equal(formatDocNo("R", 8, when), "VT-R-2609-00008");
+    assert.equal(docSeriesPrefix("T", when), "VT-T-2609-");
   });
 
   it("marks receipts as test documents and never includes a vault code", () => {

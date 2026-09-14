@@ -212,15 +212,24 @@ export function activationNoop(prev: BillingSubscription, plan: PlanCode, now = 
   return resolveStatus(prev, now) === "active" && prev.planCode === plan;
 }
 
-export function nextDocNo(kind: "R" | "T" | "C", last: string | undefined, at = new Date()): string {
+export function docSeriesPrefix(kind: "R" | "T" | "C", at = new Date()): string {
   const yymm = `${String(at.getFullYear()).slice(2)}${String(at.getMonth() + 1).padStart(2, "0")}`;
-  const prefix = `VT-${kind}-${yymm}-`;
+  return `VT-${kind}-${yymm}-`;
+}
+
+export function formatDocNo(kind: "R" | "T" | "C", n: number, at = new Date()): string {
+  const serial = Number.isFinite(n) && n >= 1 ? Math.min(Math.floor(n), 99_999) : 1;
+  return `${docSeriesPrefix(kind, at)}${String(serial).padStart(5, "0")}`;
+}
+
+export function nextDocNo(kind: "R" | "T" | "C", last: string | undefined, at = new Date()): string {
+  const prefix = docSeriesPrefix(kind, at);
   let n = 1;
   if (last && last.startsWith(prefix)) {
     const parsed = Number(last.slice(prefix.length));
     if (Number.isFinite(parsed)) n = parsed + 1;
   }
-  return `${prefix}${String(n).padStart(5, "0")}`;
+  return formatDocNo(kind, n, at);
 }
 
 function esc(value: string): string {
