@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   bearerMatches,
+  cronSecretAccepted,
   isHttpsUrl,
   isSafeWebhookUrl,
   isPrivateIpv4,
@@ -77,6 +78,14 @@ describe("cron bearer compare", () => {
     assert.equal(bearerMatches("Bearer secret", undefined), false);
     assert.equal(bearerMatches(null, "secret"), false);
     assert.equal(bearerMatches("Bearer secret", ""), false);
+  });
+
+  it("rejects the preview default secret on a deployed host", () => {
+    assert.equal(cronSecretAccepted("vaulty-dev-cron", true), true);
+    assert.equal(cronSecretAccepted("vaulty-dev-cron", false), false);
+    assert.equal(cronSecretAccepted("short", true), false);
+    assert.equal(cronSecretAccepted(undefined, true), false);
+    assert.equal(cronSecretAccepted("a-production-cron-secret", false), true);
   });
 });
 

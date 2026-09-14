@@ -112,8 +112,17 @@ export function BillingPanel() {
                 <Button
                   variant={on ? "secondary" : "default"}
                   className="mt-auto h-auto min-h-11 w-full whitespace-normal py-2"
-                  disabled={Boolean(busy) || on}
-                  onClick={() => void run(code, () => activateBillingPlan({ data: { plan: code, lang } }), "billActivated")}
+                  disabled={Boolean(busy) || on || taxErr}
+                  onClick={() =>
+                    void run(
+                      code,
+                      async () => {
+                        await saveBillingProfile({ data: { legalName: name, address, taxId, branch, email } });
+                        return activateBillingPlan({ data: { plan: code, lang } });
+                      },
+                      "billActivated",
+                    )
+                  }
                 >
                   {on ? `${t("billStatusActive")} · ${t(PLAN_COPY[code].name)}` : `${t("billActivate")} · ${t(PLAN_COPY[code].name)}`}
                 </Button>
@@ -187,7 +196,7 @@ export function BillingPanel() {
             <Input
               value={taxId}
               inputMode="numeric"
-              maxLength={13}
+              maxLength={18}
               autoComplete="off"
               aria-invalid={taxErr}
               onChange={(e) => {

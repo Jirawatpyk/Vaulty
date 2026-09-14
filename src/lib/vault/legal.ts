@@ -1,7 +1,8 @@
 import type { Lang } from "./types.ts";
+import { PDPC, controllerParagraphs } from "./operator.ts";
 
 /** Bump this when terms or privacy change — existing grants stop counting. */
-export const LEGAL_VERSION = "1";
+export const LEGAL_VERSION = "2";
 export const LEGAL_UPDATED_ISO = "2026-09-14";
 
 export type LegalDocId = "terms" | "privacy";
@@ -274,10 +275,7 @@ const TERMS_EN: LegalSection[] = [
 const PRIVACY_TH: LegalSection[] = [
   {
     heading: "1. ผู้ควบคุมข้อมูล",
-    paragraphs: [
-      "ผู้ควบคุมข้อมูลส่วนบุคคลคือผู้ให้บริการแอป Vaulty ตามที่ระบุเมื่อเปิดใช้บริการจริง ฉบับทดลองในระบบพรีวิวอาจล้างฐานข้อมูลเมื่อรีสตาร์ท ไม่มีสำนักงานถาวรในเอกสารนี้จนกว่าจะจดทะเบียนผู้ให้บริการ",
-      "ท่านติดต่อเรื่องข้อมูลส่วนบุคคลได้จากหน้าแผนส่งมอบ หรือช่องทางที่ระบุเมื่อเปิดบริการจริง",
-    ],
+    paragraphs: controllerParagraphs("th"),
   },
   {
     heading: "2. เมื่อใช้เฉพาะเครื่อง — เราไม่เก็บคลังของท่าน",
@@ -366,10 +364,7 @@ const PRIVACY_TH: LegalSection[] = [
 const PRIVACY_EN: LegalSection[] = [
   {
     heading: "1. Data controller",
-    paragraphs: [
-      "The controller is the Vaulty operator named when the service is put into production. A preview copy may wipe its database on restart. This notice does not invent a registered office until the operator is incorporated.",
-      "Contact the controller from the release-plan page, or through the channel published when the service goes live.",
-    ],
+    paragraphs: controllerParagraphs("en"),
   },
   {
     heading: "2. Device-only use — we do not receive your vault",
@@ -475,5 +470,14 @@ export function legalDoc(id: LegalDocId, lang: Lang): LegalDoc {
 
 export function legalHasPdpaRights(doc: LegalDoc): boolean {
   const blob = doc.sections.map((s) => `${s.heading} ${s.paragraphs.join(" ")}`).join(" ");
-  return /ถอนความยินยอม|withdraw consent/i.test(blob) && /พ\.ร\.บ\. คุ้มครองข้อมูลส่วนบุคคล|PDPA B\.E\. 2562/i.test(blob);
+  return /ถอนความยินยอม|withdraw consent/i.test(blob) && /พ\.ร\.บ\. คุ้มครองข้อมูลส่วนบุคคล|PDPA B\.E\. 2562|พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล/i.test(blob);
+}
+
+export function legalHasNamedController(doc: LegalDoc): boolean {
+  const blob = doc.sections.map((s) => `${s.heading} ${s.paragraphs.join(" ")}`).join(" ");
+  return (
+    /ผู้ควบคุมข้อมูล|Data controller/i.test(blob) &&
+    /ยังไม่จดทะเบียน|not yet incorporated/i.test(blob) &&
+    blob.includes(PDPC.url)
+  );
 }

@@ -37,7 +37,7 @@ try {
   const privacyText = await page.locator("main").innerText();
   record("L4", "นโยบายมี พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล และสิทธิถอนความยินยอม", /พ\.ร\.บ\. คุ้มครองข้อมูลส่วนบุคคล|PDPA B\.E\. 2562/i.test(privacyText) && /ถอนความยินยอม|withdraw consent/i.test(privacyText));
   record("L5", "นโยบายบอกว่าไม่เก็บรหัสคลัง", /รหัสคลัง|passcode|vault code/i.test(privacyText));
-  record("L6", "นโยบายชี้ สคส.", /สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล|Personal Data Protection Commission/i.test(privacyText));
+  record("L6", "นโยบายชี้ สคส. และระบุผู้ควบคุมข้อมูล", /สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล|Personal Data Protection Commission/i.test(privacyText) && /ผู้ควบคุมข้อมูล/.test(privacyText) && /pdpc\.or\.th/.test(privacyText));
 
   const switchBtn = page.getByRole("button", { name: /Switch language|สลับภาษา/i });
   await switchBtn.click();

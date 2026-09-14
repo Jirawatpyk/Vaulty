@@ -3,6 +3,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { LegalLinks } from "@/components/vault/consent-box";
 import { Wordmark } from "@/components/vault/vault-mark";
+import { LEGAL_VERSION } from "@/lib/vault/legal";
 import { useT, useVaultStore } from "@/lib/vault/store";
 
 export function LegalLayout() {
@@ -49,7 +50,7 @@ export function LegalArticle({
       <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">{t("legalKicker")}</p>
       <h1 className="font-display mt-3 text-3xl tracking-tight">{title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {t("legalUpdated")} {updated} · {t("legalVersion")}
+        {t("legalUpdated")} {updated} · {t("legalVersion")} {LEGAL_VERSION}
       </p>
       <div className="mt-8 grid gap-8">{children}</div>
     </main>

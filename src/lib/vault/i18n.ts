@@ -313,7 +313,7 @@ export const dict = {
     legalIndexLead:
       "คลังบนเครื่องไม่ขึ้นเซิร์ฟเวอร์ จนกว่าคุณจะเข้าสู่ระบบเพื่อสำรองคลาวด์หรือเปิดสวิตช์คนตาย — ตอนนั้นต้องให้ความยินยอมตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562",
     legalUpdated: "อัปเดต",
-    legalVersion: "รุ่นเอกสาร 1",
+    legalVersion: "รุ่นเอกสาร",
     legalNotAdvice: "เอกสารนี้ไม่ใช่คำปรึกษาทางกฎหมาย",
     consentAnd: "และ",
     consentAccount: "ข้าพเจ้าอ่านแล้ว และยินยอมให้ประมวลผลอีเมลและบัญชีตาม",
@@ -934,7 +934,7 @@ export const dict = {
     legalIndexLead:
       "A vault on this device never reaches a server until you sign in for cloud backup or the dead-man’s switch. That step needs consent under the Thai PDPA B.E. 2562.",
     legalUpdated: "Updated",
-    legalVersion: "Document version 1",
+    legalVersion: "Document version",
     legalNotAdvice: "This is not legal advice",
     consentAnd: "and the",
     consentAccount: "I have read, and I consent to processing of my email and account under the",

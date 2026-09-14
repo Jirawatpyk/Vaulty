@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ControllerCard } from "@/components/vault/controller-card";
 import { LegalArticle } from "@/components/vault/legal-chrome";
 import { legalDoc } from "@/lib/vault/legal";
 import { useVaultStore } from "@/lib/vault/store";
@@ -10,6 +11,7 @@ function PrivacyPage() {
   const doc = legalDoc("privacy", lang);
   return (
     <LegalArticle title={doc.title} updated={doc.updated}>
+      <ControllerCard />
       {doc.sections.map((section) => (
         <section key={section.heading}>
           <h2 className="font-display text-xl">{section.heading}</h2>

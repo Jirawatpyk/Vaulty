@@ -16,9 +16,11 @@ import {
   isPlanCode,
   nextDocNo,
   parseProfile,
+  profileReadyForTaxInvoice,
   resolveStatus,
   splitVat,
   trialEligible,
+  activationNoop,
   type BillingDocMeta,
   type BillingFeature,
   type BillingProfile,
@@ -249,8 +251,9 @@ async function issueDocument(
 export async function activateTestPlan(userId: string, plan: PlanCode, lang: "th" | "en"): Promise<BillingSnapshot> {
   if (!BILLING_TEST_MODE) throw new Error("live");
   if (!PAID_PLANS.includes(plan as Exclude<PlanCode, "free">)) throw new Error("plan");
-  const now = new Date();
   const prev = await readSub(userId);
+  if (activationNoop(prev, plan)) return loadSnapshot(userId);
+  const now = new Date();
   const next: BillingSubscription = {
     ...prev,
     planCode: plan,
@@ -264,7 +267,9 @@ export async function activateTestPlan(userId: string, plan: PlanCode, lang: "th
   await writeSub(userId, next);
   const profile = await readProfile(userId);
   await issueDocument(userId, "receipt", plan, profile, lang);
-  await issueDocument(userId, "tax_invoice", plan, profile, lang);
+  if (profileReadyForTaxInvoice(profile)) {
+    await issueDocument(userId, "tax_invoice", plan, profile, lang);
+  }
   return loadSnapshot(userId);
 }
 
@@ -274,6 +279,10 @@ export async function startTrial(userId: string): Promise<BillingSnapshot> {
 
 export async function cancelTestPlan(userId: string): Promise<BillingSnapshot> {
   const prev = await readSub(userId);
+  const resolved = resolveStatus(prev);
+  if (resolved !== "active" && resolved !== "trialing" && resolved !== "past_due") {
+    return loadSnapshot(userId);
+  }
   await writeSub(userId, { ...prev, status: "paused", planCode: prev.planCode === "free" ? "free" : prev.planCode });
   return loadSnapshot(userId);
 }

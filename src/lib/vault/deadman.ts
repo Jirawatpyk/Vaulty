@@ -173,6 +173,14 @@ export function bearerMatches(header: string | null | undefined, secret: string 
   return diff === 0;
 }
 
+/** Preview may use the well-known local secret. A deployed app must set its own. */
+export function cronSecretAccepted(secret: string | undefined, preview: boolean): boolean {
+  if (!secret) return false;
+  if (!preview && secret === "vaulty-dev-cron") return false;
+  if (secret.length < 12) return false;
+  return true;
+}
+
 export async function mapInBatches<T, R>(
   items: readonly T[],
   worker: (item: T) => Promise<R>,

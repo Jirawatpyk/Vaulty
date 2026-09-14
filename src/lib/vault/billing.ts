@@ -1,7 +1,8 @@
 import type { Lang } from "./types.ts";
+import { OPERATOR, sellerLabel } from "./operator.ts";
 
 export const BILLING_TEST_MODE = true;
-export const COMPANY_REGISTERED = false;
+export const COMPANY_REGISTERED = OPERATOR.registered;
 export const TRIAL_DAYS = 14;
 export const YEAR_DAYS = 365;
 export const PAST_DUE_DAYS = 7;
@@ -49,13 +50,13 @@ export const PLANS: Record<PlanCode, PlanDef> = {
 export const PAID_PLANS: Exclude<PlanCode, "free">[] = ["care", "estate", "counsel"];
 
 export const SELLER = {
-  registered: COMPANY_REGISTERED,
+  registered: OPERATOR.registered,
   testMode: BILLING_TEST_MODE,
-  nameTh: "Vaulty (ยังไม่จดทะเบียน)",
-  nameEn: "Vaulty (not yet incorporated)",
-  taxId: "",
-  addressTh: "จะกรอกหลังจดนิติบุคคล",
-  addressEn: "To be filled after company registration",
+  nameTh: sellerLabel("th"),
+  nameEn: sellerLabel("en"),
+  taxId: OPERATOR.taxId,
+  addressTh: OPERATOR.registeredOfficeTh || "จะกรอกหลังจดนิติบุคคล",
+  addressEn: OPERATOR.registeredOfficeEn || "To be filled after company registration",
 };
 
 export type BillingProfile = {
@@ -142,8 +143,13 @@ export function isThaiTaxId(raw: string): boolean {
 }
 
 export function parseProfile(raw: unknown): BillingProfile {
-  const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const str = (k: string, max: number) => String(o[k] ?? "").trim().slice(0, max);
+  const o = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
+  const str = (k: string, max: number) =>
+    String(o[k] ?? "")
+      .replace(/[\r\n\0\t]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, max);
   const digits = String(o.taxId ?? "").replace(/\D/g, "").slice(0, 13);
   return {
     legalName: str("legalName", 120),
@@ -199,6 +205,11 @@ export function hasFeature(sub: BillingSubscription, feature: BillingFeature, no
 
 export function trialEligible(sub: BillingSubscription): boolean {
   return !sub.trialStartedAt && resolveStatus(sub) === "none" && sub.planCode === "free";
+}
+
+/** Same active plan again must not mint another pair of test documents. */
+export function activationNoop(prev: BillingSubscription, plan: PlanCode, now = Date.now()): boolean {
+  return resolveStatus(prev, now) === "active" && prev.planCode === plan;
 }
 
 export function nextDocNo(kind: "R" | "T" | "C", last: string | undefined, at = new Date()): string {

@@ -75,7 +75,7 @@ try {
     headers: { Authorization: `Bearer ${secret}` },
   });
   const body = await tick.json().catch(() => ({}));
-  record("D6", "ตัวเดินเวลารับ tick", tick.ok() && typeof body.scanned === "number");
+  record("D6", "ตัวเดินเวลารับ tick หรือจำกัดความถี่เมื่อยิงถี่", (tick.ok() && typeof body.scanned === "number") || (tick.status() === 429 && body.error === "rate"), { status: tick.status(), body });
 } catch (err) {
   record("runner", String(err).slice(0, 500), false);
 }
