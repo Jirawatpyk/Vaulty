@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Vaulty",
+      "hasCanvas": false,
+      "bodyTextLen": 394,
+      "bodyTextHash": "6594b92efa69f7278cb2808c3b70b644f5ac39b875b971e0cc4fb2d6a0d96306",
+      "bodyTextPrefix": "Vaulty EN DIGITAL LEGACY VAULT Vaulty คลังมรดกและทรัพย์สินดิจิทั",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Vaulty",
+      "hasCanvas": false,
+      "bodyTextLen": 394,
+      "bodyTextHash": "6594b92efa69f7278cb2808c3b70b644f5ac39b875b971e0cc4fb2d6a0d96306",
+      "bodyTextPrefix": "Vaulty EN DIGITAL LEGACY VAULT Vaulty คลังมรดกและทรัพย์สินดิจิทั",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
